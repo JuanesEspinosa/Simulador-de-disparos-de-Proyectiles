@@ -59,7 +59,7 @@ export default function SimulationScene() {
                 fadeStrength={1}
               />
               <Environment preset="sunset" />
-              
+
               {/* Suelo */}
               <RigidBody type="fixed" colliders="cuboid">
                 <mesh
@@ -117,7 +117,7 @@ export default function SimulationScene() {
       </button>
 
       {/* Panel de Gráficas */}
-      {showCharts && <ChartsPanel />}
+      {showCharts && <ChartsPanel onClose={() => setShowCharts(false)} />}
     </div>
   );
 }

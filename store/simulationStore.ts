@@ -14,6 +14,7 @@ interface Projectile {
   mass: number;
   windEnabled: boolean;
   windForce: number;
+  windDirection: number;
 }
 
 interface SimulationState {
@@ -23,6 +24,12 @@ interface SimulationState {
   mass: number;
   windEnabled: boolean;
   windForce: number;
+  windDirection: number;
+
+  // Visibility flags
+  showProjectiles: boolean;
+  showImpacts: boolean;
+  showTrajectories: boolean;
 
   // Proyectiles activos
   projectiles: Projectile[];
@@ -36,6 +43,11 @@ interface SimulationState {
   setMass: (mass: number) => void;
   setWindEnabled: (enabled: boolean) => void;
   setWindForce: (force: number) => void;
+  setWindDirection: (direction: number) => void;
+
+  toggleShowProjectiles: () => void;
+  toggleShowImpacts: () => void;
+  toggleShowTrajectories: () => void;
 
   // Acciones
   fireProjectile: (projectile: Omit<Projectile, 'id'>) => void;
@@ -51,6 +63,12 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   mass: 1,
   windEnabled: false,
   windForce: 0.5,
+  windDirection: 0, // 0 degrees = wind blowing towards +X
+
+  // Visibility flags
+  showProjectiles: true,
+  showImpacts: true,
+  showTrajectories: true,
 
   projectiles: [],
   trajectories: {},
@@ -60,6 +78,11 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   setMass: (mass) => set({ mass }),
   setWindEnabled: (windEnabled) => set({ windEnabled }),
   setWindForce: (windForce) => set({ windForce }),
+  setWindDirection: (windDirection) => set({ windDirection }),
+
+  toggleShowProjectiles: () => set((state) => ({ showProjectiles: !state.showProjectiles })),
+  toggleShowImpacts: () => set((state) => ({ showImpacts: !state.showImpacts })),
+  toggleShowTrajectories: () => set((state) => ({ showTrajectories: !state.showTrajectories })),
 
   fireProjectile: (projectile) =>
     set((state) => {
