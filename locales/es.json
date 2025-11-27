@@ -1,0 +1,46 @@
+{
+    "app": {
+        "title": "Simulador de Proyectiles",
+        "loading": "Cargando simulación...",
+        "initializing": "Inicializando..."
+    },
+    "controls": {
+        "title": "Panel de Control",
+        "velocity": "Velocidad Inicial",
+        "angle": "Ángulo de Disparo",
+        "mass": "Masa del Proyectil",
+        "gravity": "Gravedad",
+        "wind": "Viento",
+        "windForce": "Velocidad del Viento",
+        "windDirection": "Dirección del Viento",
+        "fire": "Disparar Proyectil",
+        "firing": "Disparando...",
+        "reset": "Reiniciar Simulación",
+        "language": "Idioma"
+    },
+    "charts": {
+        "trajectory": "Trayectoria (X vs Y)",
+        "height": "Altura vs Tiempo",
+        "velocity": "Velocidad vs Tiempo",
+        "expand": "Expandir",
+        "collapse": "Contraer",
+        "close": "Cerrar",
+        "flightTime": "Tiempo de Vuelo",
+        "maxRange": "Alcance Máximo",
+        "maxHeight": "Altura Máxima",
+        "selected": "Seleccionado",
+        "dataTable": "Datos de Trayectoria",
+        "time": "Tiempo",
+        "posX": "Pos X",
+        "posY": "Pos Y",
+        "noData": "No hay datos disponibles para el disparo seleccionado",
+        "showing": "Mostrando",
+        "dataPoints": "puntos de datos",
+        "interval": "Intervalo",
+        "formulas": "Fórmulas Utilizadas",
+        "formulasDesc": "Ecuaciones físicas aplicadas en esta simulación",
+        "standardMotion": "Movimiento de Proyectil Estándar",
+        "windMotion": "Movimiento con Resistencia de Viento (Lineal)",
+        "shot": "Disparo"
+    }
+}

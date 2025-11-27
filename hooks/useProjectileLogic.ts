@@ -9,6 +9,8 @@ interface ProjectileData {
     id: string;
     startTime: number;
     mass: number;
+    gravity: number;
+    damping: number;
     windEnabled: boolean;
     windForce: number;
     windDirection: number;
@@ -124,6 +126,8 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
                 id: proj.id,
                 startTime: Date.now(),
                 mass: proj.mass,
+                gravity: proj.gravity,
+                damping: proj.damping,
                 windEnabled: proj.windEnabled,
                 windForce: proj.windForce,
                 windDirection: proj.windDirection,
@@ -147,40 +151,52 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
 
             projectilesRef.current = projectilesRef.current.filter((proj) => {
                 // Physics calculations
-                proj.velocity.y += PHYSICS_CONSTANTS.GRAVITY * deltaTime;
+                // Use variable gravity from projectile data (captured at launch)
+                // If gravity was not captured (old projectiles), use default 9.81
+                const g = proj.gravity || 9.81;
+                const damping = proj.damping || 0.5; // b coefficient
+
+                // Linear Drag Model: F_drag = -b * v
+                // With Wind: F_drag = -b * (v - V_wind)
+
+                let windVelocity = new THREE.Vector3(0, 0, 0);
 
                 if (proj.windEnabled) {
-                    // Calculate wind vector based on direction and force
-                    // windDirection is in degrees, 0 = +X, 90 = +Z, 180 = -X, 270 = -Z
+                    // Wind Force slider now represents Wind Velocity magnitude in m/s
                     const windRad = (proj.windDirection * Math.PI) / 180;
-                    const windX = Math.cos(windRad) * proj.windForce;
-                    const windZ = Math.sin(windRad) * proj.windForce;
-
-                    const windAccelerationX = windX / proj.mass;
-                    const windAccelerationZ = windZ / proj.mass;
-
-                    proj.velocity.x += windAccelerationX * deltaTime;
-                    proj.velocity.z += windAccelerationZ * deltaTime;
+                    const windSpeed = proj.windForce; // Treated as velocity magnitude
+                    windVelocity.set(
+                        Math.cos(windRad) * windSpeed,
+                        0,
+                        Math.sin(windRad) * windSpeed
+                    );
                 }
 
-                const speed = proj.velocity.length();
-                if (speed > 0.01) {
-                    const dragForce = 0.5 * PHYSICS_CONSTANTS.AIR_DENSITY * PHYSICS_CONSTANTS.DRAG_COEFFICIENT * PHYSICS_CONSTANTS.CROSS_SECTIONAL_AREA * speed * speed;
-                    const dragAcceleration = dragForce / proj.mass;
-                    const dragVector = proj.velocity.clone().normalize().multiplyScalar(-dragAcceleration * deltaTime);
-                    proj.velocity.add(dragVector);
-                }
+                // Relative Velocity: v_rel = v - V_wind
+                const relativeVelocity = proj.velocity.clone().sub(windVelocity);
 
+                // Drag Force: F_d = -b * v_rel
+                // Acceleration due to drag: a_d = F_d / m = -(b/m) * v_rel
+                const dragAcceleration = relativeVelocity.multiplyScalar(-damping / proj.mass);
+
+                // Total Acceleration: a = g + a_d
+                // g is (0, -g, 0)
+                const totalAcceleration = dragAcceleration.clone();
+                totalAcceleration.y -= g;
+
+                // Update Velocity: v = v + a * dt
+                proj.velocity.add(totalAcceleration.multiplyScalar(deltaTime));
+
+                // Update Position: p = p + v * dt
                 const movement = proj.velocity.clone().multiplyScalar(deltaTime);
                 proj.mesh.position.add(movement);
+
+                const speed = proj.velocity.length();
 
                 // Update rotation to face velocity direction
                 if (speed > 0.1) {
                     const lookTarget = proj.mesh.position.clone().add(proj.velocity);
                     proj.mesh.lookAt(lookTarget);
-                    // Adjust because the rocket model might be oriented along X or Y
-                    // Our model is built along X axis, so lookAt should work if +X is forward
-                    // If model was Y-up, we'd need to rotate X by -PI/2
                 }
 
                 // Trajectory Update
@@ -201,9 +217,6 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
                 }
 
                 // Collision / Ground Hit
-                // Improved collision detection:
-                // 1. Check if y < 0 (ground level)
-                // 2. Grace period: Don't collide if very close to origin (launch pad) and just started
                 const distFromOrigin = Math.sqrt(proj.mesh.position.x ** 2 + proj.mesh.position.z ** 2);
                 const isLaunching = distFromOrigin < 1.0 && proj.mesh.position.y < 2.0 && proj.velocity.y > 0;
 

@@ -12,6 +12,8 @@ interface Projectile {
   initialPosition: [number, number, number];
   initialVelocity: [number, number, number];
   mass: number;
+  gravity: number;
+  damping: number;
   windEnabled: boolean;
   windForce: number;
   windDirection: number;
@@ -22,6 +24,8 @@ interface SimulationState {
   velocity: number;
   angle: number;
   mass: number;
+  gravity: number;
+  damping: number;
   windEnabled: boolean;
   windForce: number;
   windDirection: number;
@@ -41,6 +45,8 @@ interface SimulationState {
   setVelocity: (velocity: number) => void;
   setAngle: (angle: number) => void;
   setMass: (mass: number) => void;
+  setGravity: (gravity: number) => void;
+  setDamping: (damping: number) => void;
   setWindEnabled: (enabled: boolean) => void;
   setWindForce: (force: number) => void;
   setWindDirection: (direction: number) => void;
@@ -61,6 +67,8 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   velocity: 20,
   angle: 45,
   mass: 1,
+  gravity: 9.81,
+  damping: 0.5,
   windEnabled: false,
   windForce: 0.5,
   windDirection: 0, // 0 degrees = wind blowing towards +X
@@ -76,6 +84,8 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   setVelocity: (velocity) => set({ velocity }),
   setAngle: (angle) => set({ angle }),
   setMass: (mass) => set({ mass }),
+  setGravity: (gravity) => set({ gravity }),
+  setDamping: (damping) => set({ damping }),
   setWindEnabled: (windEnabled) => set({ windEnabled }),
   setWindForce: (windForce) => set({ windForce }),
   setWindDirection: (windDirection) => set({ windDirection }),
@@ -115,4 +125,3 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       };
     }),
 }));
-

@@ -1,0 +1,46 @@
+{
+    "app": {
+        "title": "Projectile Simulator",
+        "loading": "Loading simulation...",
+        "initializing": "Initializing..."
+    },
+    "controls": {
+        "title": "Control Panel",
+        "velocity": "Initial Velocity",
+        "angle": "Launch Angle",
+        "mass": "Projectile Mass",
+        "gravity": "Gravity",
+        "wind": "Wind",
+        "windForce": "Wind Velocity",
+        "windDirection": "Wind Direction",
+        "fire": "Fire Projectile",
+        "firing": "Firing...",
+        "reset": "Reset Simulation",
+        "language": "Language"
+    },
+    "charts": {
+        "trajectory": "Trajectory (X vs Y)",
+        "height": "Height vs Time",
+        "velocity": "Velocity vs Time",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "close": "Close",
+        "flightTime": "Flight Time",
+        "maxRange": "Max Range",
+        "maxHeight": "Max Height",
+        "selected": "Selected",
+        "dataTable": "Trajectory Data",
+        "time": "Time",
+        "posX": "Pos X",
+        "posY": "Pos Y",
+        "noData": "No data available for selected shot",
+        "showing": "Showing",
+        "dataPoints": "data points",
+        "interval": "Interval",
+        "formulas": "Used Formulas",
+        "formulasDesc": "Physics equations applied in this simulation",
+        "standardMotion": "Standard Projectile Motion",
+        "windMotion": "Motion with Wind Resistance (Linear)",
+        "shot": "Shot"
+    }
+}
