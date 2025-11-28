@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { useState, useMemo } from 'react';
 import { useLanguage } from './LanguageProvider';
+import ForcesDiagram from './ForcesDiagram';
 
 interface ChartsPanelProps {
   onClose: () => void;
@@ -66,6 +67,7 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
         color,
         name: `${t('charts.shot')} ${id.substr(-4)}`,
         windEnabled: projectile?.windEnabled,
+        config: projectile,
         stats: {
           maxHeight,
           maxRange,
@@ -243,8 +245,8 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
             <div
               key={data.id}
               className={`p-4 rounded-xl border transition-all cursor-pointer ${selectedShotId === data.id
-                  ? 'bg-white/10 border-white/30 ring-1 ring-white/50'
-                  : 'bg-white/5 border-white/10 hover:bg-white/10'
+                ? 'bg-white/10 border-white/30 ring-1 ring-white/50'
+                : 'bg-white/5 border-white/10 hover:bg-white/10'
                 } ${selectedShotId && selectedShotId !== data.id ? 'opacity-40' : 'opacity-100'}`}
               onClick={() => {
                 setSelectedShotId(prev => prev === data.id ? null : data.id);
@@ -272,6 +274,25 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
             </div>
           ))}
         </div>
+
+        {/* Forces Diagram */}
+        {selectedShotData && (
+          <ForcesDiagram
+            points={selectedShotData.points}
+            projectile={selectedShotData.config || {
+              mass: 1,
+              damping: 0.5,
+              gravity: 9.81,
+              windEnabled: selectedShotData.windEnabled || false,
+              windForce: 0.5,
+              windDirection: 0
+            }}
+            color={selectedShotData.color}
+            shots={processedData.map(d => ({ id: d.id, name: d.name }))}
+            currentShotId={tableShotId || undefined}
+            onShotSelect={(id) => setTableShotId(id)}
+          />
+        )}
 
         {/* Data Table */}
         <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">

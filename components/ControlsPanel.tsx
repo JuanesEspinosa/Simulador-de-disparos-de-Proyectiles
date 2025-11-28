@@ -91,7 +91,7 @@ export default function ControlsPanel() {
         {/* Velocidad Inicial */}
         <div className="group">
           <div className="flex justify-between items-center text-xs text-white/60 mb-2 uppercase tracking-wider">
-            <span>{t('controls.velocity') + ' (m/s)'}</span>
+            <span>{t('controls.velocity')} (m/s)</span>
             <input
               type="number"
               value={velocity}

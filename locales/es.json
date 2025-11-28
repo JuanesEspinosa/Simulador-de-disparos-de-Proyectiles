@@ -41,6 +41,7 @@
         "formulasDesc": "Ecuaciones físicas aplicadas en esta simulación",
         "standardMotion": "Movimiento de Proyectil Estándar",
         "windMotion": "Movimiento con Resistencia de Viento (Lineal)",
-        "shot": "Disparo"
+        "shot": "Disparo",
+        "forcesDiagram": "Diagrama de Fuerzas"
     }
 }

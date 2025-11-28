@@ -41,6 +41,7 @@
         "formulasDesc": "Physics equations applied in this simulation",
         "standardMotion": "Standard Projectile Motion",
         "windMotion": "Motion with Wind Resistance (Linear)",
-        "shot": "Shot"
+        "shot": "Shot",
+        "forcesDiagram": "Forces Diagram"
     }
 }
