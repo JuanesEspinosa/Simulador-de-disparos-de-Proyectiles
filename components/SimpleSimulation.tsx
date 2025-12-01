@@ -23,6 +23,9 @@ export default function SimpleSimulation() {
   const [renderer, setRenderer] = useState<THREE.WebGLRenderer | null>(null);
   const [controls, setControls] = useState<OrbitControls | null>(null);
 
+  // Subscribe to projectiles to trigger re-renders when they land/update
+  const projectiles = useSimulationStore((state) => state.projectiles);
+
   const [showCharts, setShowCharts] = useState(false);
   const [currentImpactIndex, setCurrentImpactIndex] = useState<number>(-1);
 

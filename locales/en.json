@@ -2,7 +2,17 @@
     "app": {
         "title": "Projectile Simulator",
         "loading": "Loading simulation...",
-        "initializing": "Initializing..."
+        "initializing": "Initializing...",
+        "analysis": "Analysis",
+        "camera": "Camera",
+        "clear": "Clear",
+        "impact": "Impact",
+        "showCharts": "Show Charts",
+        "hideCharts": "Hide Charts",
+        "toggleProjectiles": "Toggle Projectiles",
+        "toggleTrajectories": "Toggle Trajectories",
+        "toggleImpacts": "Toggle Impacts",
+        "copyright": "© 2025 Developed by Juanes Espinosa"
     },
     "controls": {
         "title": "Control Panel",
@@ -16,7 +26,12 @@
         "fire": "Fire Projectile",
         "firing": "Firing...",
         "reset": "Reset Simulation",
-        "language": "Language"
+        "language": "Language",
+        "airResistance": "Air Resistance",
+        "withFriction": "b = 0.5 (With Friction)",
+        "noFriction": "b = 0 (No Friction)",
+        "headwind": "Headwind",
+        "headwindDesc": "Opposite to projectile (-X)"
     },
     "charts": {
         "trajectory": "Trajectory (X vs Y)",
@@ -42,6 +57,31 @@
         "standardMotion": "Standard Projectile Motion",
         "windMotion": "Motion with Wind Resistance (Linear)",
         "shot": "Shot",
-        "forcesDiagram": "Forces Diagram"
+        "forcesDiagram": "Forces Diagram",
+        "variables": "Shot Variables",
+        "dragForce": "Drag Force",
+        "horizontalVelocity": "Horizontal Velocity",
+        "horizontalPosition": "Horizontal Position",
+        "verticalVelocity": "Vertical Velocity",
+        "verticalPosition": "Vertical Position",
+        "weight": "Weight",
+        "terminalVelocity": "Terminal Velocity",
+        "variablesTitle": "Variables",
+        "initialVelocity": "Initial Velocity",
+        "launchAngle": "Launch Angle",
+        "gravity": "Gravity",
+        "mass": "Mass",
+        "dampingCoeff": "Damping Coeff",
+        "windVelocity": "Wind Velocity",
+        "delete": "Delete Shot",
+        "selectShot": "Select Shot",
+        "position": "Position",
+        "constant": "Constant",
+        "friction": "Friction (Fr)",
+        "opposingV": "Opposite to V",
+        "disabled": "Disabled",
+        "wind": "Wind (Vw)",
+        "direction": "Direction",
+        "diagramDisclaimer": "* The diagram shows instantaneous forces at the selected point. Vector scale is approximate for visualization."
     }
 }

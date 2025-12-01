@@ -2,7 +2,17 @@
     "app": {
         "title": "Simulador de Proyectiles",
         "loading": "Cargando simulación...",
-        "initializing": "Inicializando..."
+        "initializing": "Inicializando...",
+        "analysis": "Análisis",
+        "camera": "Cámara",
+        "clear": "Limpiar",
+        "impact": "Impacto",
+        "showCharts": "Mostrar Gráficas",
+        "hideCharts": "Ocultar Gráficas",
+        "toggleProjectiles": "Alternar Proyectiles",
+        "toggleTrajectories": "Alternar Trayectorias",
+        "toggleImpacts": "Alternar Impactos",
+        "copyright": "© 2025 Desarrollado por Juanes Espinosa"
     },
     "controls": {
         "title": "Panel de Control",
@@ -16,7 +26,12 @@
         "fire": "Disparar Proyectil",
         "firing": "Disparando...",
         "reset": "Reiniciar Simulación",
-        "language": "Idioma"
+        "language": "Idioma",
+        "airResistance": "Resistencia del Aire",
+        "withFriction": "b = 0.5 (Con fricción)",
+        "noFriction": "b = 0 (Sin fricción)",
+        "headwind": "Viento Frontal",
+        "headwindDesc": "Opuesto al proyectil (-X)"
     },
     "charts": {
         "trajectory": "Trayectoria (X vs Y)",
@@ -42,6 +57,31 @@
         "standardMotion": "Movimiento de Proyectil Estándar",
         "windMotion": "Movimiento con Resistencia de Viento (Lineal)",
         "shot": "Disparo",
-        "forcesDiagram": "Diagrama de Fuerzas"
+        "forcesDiagram": "Diagrama de Fuerzas",
+        "variables": "Variables del Disparo",
+        "dragForce": "Fuerza de Arrastre",
+        "horizontalVelocity": "Velocidad Horizontal",
+        "horizontalPosition": "Posición Horizontal",
+        "verticalVelocity": "Velocidad Vertical",
+        "verticalPosition": "Posición Vertical",
+        "weight": "Peso",
+        "terminalVelocity": "Velocidad Terminal",
+        "variablesTitle": "Variables",
+        "initialVelocity": "Velocidad Inicial",
+        "launchAngle": "Ángulo de Lanzamiento",
+        "gravity": "Gravedad",
+        "mass": "Masa",
+        "dampingCoeff": "Coef. Amortiguamiento",
+        "windVelocity": "Velocidad Viento",
+        "delete": "Eliminar Disparo",
+        "selectShot": "Seleccionar Disparo",
+        "position": "Posición",
+        "constant": "Constante",
+        "friction": "Fricción (Fr)",
+        "opposingV": "Opuesto a V",
+        "disabled": "Desactivada",
+        "wind": "Viento (Vw)",
+        "direction": "Dirección",
+        "diagramDisclaimer": "* El diagrama muestra las fuerzas instantáneas en el punto seleccionado. La escala de los vectores es aproximada para visualización."
     }
 }

@@ -1,117 +1,103 @@
-# Simulador de Lanzamiento de Proyectil 🚀
+# Simulador de Lanzamiento de Proyectiles 🚀
 
-Una aplicación web interactiva construida con Next.js 16 y Three.js para simular el lanzamiento de cohetes con física realista.
+Una aplicación web interactiva y educativa diseñada para simular y visualizar la física del movimiento de proyectiles en un entorno 3D. Este proyecto permite a los usuarios experimentar con variables físicas como la gravedad, la resistencia del aire y el viento, observando sus efectos en tiempo real tanto en la trayectoria visual como en gráficas analíticas.
 
-## Características
+## 📋 Descripción del Proyecto
 
-- 🚀 **Cohetes 3D**: Modelos detallados con cuerpo, punta, aletas y efectos de llamas
-- 📐 **Física Realista**: Gravedad, resistencia del aire y efectos del viento implementados manualmente
-- 🌬️ **Resistencia del Aire y Viento**: Opción de activar/desactivar fricción por viento
-- 📊 **Gráficas Interactivas**: Visualiza trayectorias y alcance máximo usando Recharts
-- 🎮 **Controles Ajustables**: Modifica velocidad inicial, ángulo, masa y fuerza del viento
-- 🎨 **Interfaz Moderna**: UI elegante con Tailwind CSS
-- 🔄 **Rotación Dinámica**: Los cohetes rotan según su dirección de movimiento
+El objetivo principal es proporcionar una herramienta visual para entender conceptos de cinemática y dinámica. El simulador ofrece:
+- **Simulación 3D en Tiempo Real**: Visualización de proyectiles, trayectorias y marcadores de impacto.
+- **Física Avanzada**: Implementación de modelos de resistencia del aire (arrastre lineal) y efectos de viento lateral/frontal.
+- **Análisis de Datos**: Gráficas interactivas de posición, velocidad y altura vs tiempo.
+- **Diagramas de Fuerzas**: Visualización vectorial de las fuerzas que actúan sobre el proyectil en cada instante.
+- **Internacionalización**: Soporte completo para Inglés y Español.
 
-## Tecnologías
+## 🛠️ Tecnologías y Librerías Utilizadas
 
-- **Next.js 16**: Framework React con App Router
-- **Three.js**: Renderizado 3D directo (sin React Three Fiber para mayor estabilidad)
-- **Recharts**: Librería de gráficas para React
-- **Zustand**: Gestión de estado
-- **TypeScript**: Tipado estático
-- **Tailwind CSS**: Estilos utilitarios
-- **OrbitControls**: Controles de cámara para navegación 3D
+El proyecto está construido con un stack moderno centrado en el rendimiento y la experiencia de usuario:
 
-## Instalación
+### Core
+- **[Next.js 16](https://nextjs.org/)**: Framework de React para producción (App Router).
+- **[React 18](https://react.dev/)**: Librería para la construcción de interfaces de usuario.
+- **[TypeScript](https://www.typescriptlang.org/)**: Superset de JavaScript con tipado estático para mayor robustez.
 
-```bash
-# Instalar dependencias
-npm install
+### Gráficos y 3D
+- **[Three.js](https://threejs.org/)**: Motor de renderizado 3D.
+- **[@react-three/fiber](https://docs.pmnd.rs/react-three-fiber)**: Reconciliador de React para Three.js.
+- **[@react-three/drei](https://github.com/pmndrs/drei)**: Colección de helpers y abstracciones para R3F.
+- **[@react-three/rapier](https://github.com/pmndrs/react-three-rapier)**: Integración del motor de física Rapier (usado para colisiones con el suelo y estructura base).
 
-# Ejecutar en modo desarrollo
-npm run dev
+### Estilos y UI
+- **[Tailwind CSS](https://tailwindcss.com/)**: Framework de CSS utilitario para diseño rápido y responsivo.
+- **[Lucide React](https://lucide.dev/)**: Iconos vectoriales ligeros.
 
-# Construir para producción
-npm run build
+### Estado y Lógica
+- **[Zustand](https://github.com/pmndrs/zustand)**: Gestión de estado global ligero y escalable.
+- **Custom Hooks**: Lógica encapsulada para física (`useProjectileLogic`) e internacionalización (`useLanguage`).
 
-# Iniciar servidor de producción
-npm start
+### Visualización de Datos y Matemáticas
+- **[Recharts](https://recharts.org/)**: Librería de gráficas composables para React.
+- **[KaTeX](https://katex.org/)** (via `react-katex`): Renderizado rápido de fórmulas matemáticas LaTeX.
+
+## 🏗️ Arquitectura del Proyecto
+
+El proyecto sigue una arquitectura basada en componentes y hooks, separando la lógica de simulación de la capa de presentación.
+
+### Estructura de Directorios
+```
+├── app/                  # Rutas y layouts de Next.js
+├── components/           # Componentes de React
+│   ├── simulation/       # Componentes específicos de la escena 3D (UI, Sistema de Proyectiles)
+│   ├── ChartsPanel.tsx   # Panel de análisis de datos y fórmulas
+│   ├── ControlsPanel.tsx # Panel de control de variables físicas
+│   ├──  ForcesDiagram.tsx # Visualización vectorial de fuerzas
+│   └── ...
+├── hooks/                # Hooks personalizados (useProjectileLogic, useLanguage)
+├── store/                # Estado global (simulationStore)
+└── locales/              # Archivos de traducción (en.json, es.json)
 ```
 
-## Uso
+### Componentes Principales
 
-1. Ajusta los parámetros en el panel de controles:
-   - **Velocidad Inicial**: Rango de 5 a 50 m/s
-   - **Ángulo**: De 0° a 90°
-   - **Masa**: De 0.1 a 10 kg
-   - **Viento**: Activa/desactiva y ajusta la fuerza
+1.  **`SimulationScene`**: El contenedor principal que inicializa el Canvas de Three.js y configura el entorno físico (luces, suelo, cámara).
+2.  **`ProjectileSystem`**: Un componente "sin cabeza" (headless) dentro del Canvas que gestiona el ciclo de vida de los proyectiles. Utiliza el hook `useProjectileLogic` para actualizar posiciones frame a frame.
+3.  **`ControlsPanel`**: Interfaz flotante que permite al usuario modificar la velocidad inicial, ángulo, masa, gravedad, coeficiente de rozamiento y viento.
+4.  **`ChartsPanel`**: Panel desplegable que consume los datos de la trayectoria (`trajectories` en el store) y los renderiza en gráficas de líneas. También muestra las fórmulas físicas relevantes renderizadas con KaTeX.
+5.  **`SimulationUI`**: Capa de interfaz sobre el Canvas que maneja botones de acción rápida (cámara, limpiar, toggles de visualización).
 
-2. Haz clic en "Disparar Proyectil" para lanzar
+### Flujo de Datos
 
-3. Observa la trayectoria en tiempo real en la escena 3D
+1.  **Input del Usuario**: El usuario ajusta parámetros en `ControlsPanel`. Estos actualizan el `simulationStore`.
+2.  **Disparo**: Al disparar, se añade un nuevo proyectil al array `projectiles` en el store con su configuración inicial.
+3.  **Simulación (Physics Loop)**:
+    -   El hook `useProjectileLogic` se ejecuta en cada frame (`useFrame` de R3F).
+    -   Calcula la nueva posición basándose en la integración de Euler: `v = v + a*dt`, `p = p + v*dt`.
+    -   Aplica fuerzas: Gravedad (`g`), Arrastre (`-b*v`), y Viento.
+    -   Actualiza directamente las referencias de los objetos Three.js (`mesh.position`) para máximo rendimiento (evitando re-renders de React por frame).
+4.  **Registro de Trayectoria**: Periódicamente, se guardan puntos de la posición en el store (`trajectories`) para ser consumidos por `ChartsPanel`.
+5.  **Colisión**: Al detectar `y <= 0`, se detiene el proyectil, se marca como 'landed' y se genera un marcador de impacto.
 
-4. Abre el panel de gráficas para ver:
-   - Trayectoria (Posición X vs Y)
-   - Alcance Máximo vs Ángulo (con ángulo óptimo)
+## 🌍 Internacionalización
 
-## Estructura del Proyecto
+El proyecto utiliza un sistema de internacionalización ligero basado en JSON.
+-   **Archivos**: `locales/en.json` y `locales/es.json`.
+-   **Hook**: `useLanguage` provee la función `t(key)` que busca la cadena correspondiente según el idioma seleccionado en el estado global.
 
-```
-├── app/
-│   ├── layout.tsx          # Layout principal
-│   ├── page.tsx            # Página principal
-│   └── globals.css         # Estilos globales
-├── components/
-│   ├── SimulationScene.tsx # Escena 3D principal
-│   ├── Projectile.tsx      # Componente del proyectil
-│   ├── ControlsPanel.tsx   # Panel de controles
-│   └── ChartsPanel.tsx     # Panel de gráficas
-└── store/
-    └── simulationStore.ts  # Estado global (Zustand)
-```
+## 🚀 Instalación y Uso
 
-## Características Físicas
+1.  **Clonar el repositorio**:
+    ```bash
+    git clone <url-del-repositorio>
+    ```
+2.  **Instalar dependencias**:
+    ```bash
+    npm install
+    ```
+3.  **Correr en desarrollo**:
+    ```bash
+    npm run dev
+    ```
+4.  **Abrir en el navegador**:
+    Visita `http://localhost:3000`.
 
-- **Gravedad**: 9.81 m/s²
-- **Resistencia del Aire**: Calculada usando la ecuación de arrastre
-- **Viento**: Fuerza horizontal ajustable
-- **Colisiones**: Detección de colisión con el suelo
-
-## Solución de Problemas
-
-### Si React Three Fiber no funciona
-
-Si tienes problemas con React Three Fiber (errores de carga, ReactCurrentOwner, etc.), puedes usar la versión alternativa más simple:
-
-1. Abre `app/page.tsx`
-2. Cambia `const USE_SIMPLE = false;` a `const USE_SIMPLE = true;`
-3. Esto usará `SimpleSimulation.tsx` que usa Three.js directamente sin React Three Fiber
-
-### Alternativas Recomendadas
-
-Si sigues teniendo problemas, aquí hay alternativas que puedes considerar:
-
-1. **Three.js Directo** (ya implementado en `SimpleSimulation.tsx`)
-   - Más simple, sin dependencias de React Three Fiber
-   - Control total sobre la escena
-   - Menos problemas de compatibilidad
-
-2. **Matter.js** (para física 2D)
-   - Más ligero que Rapier
-   - Fácil de usar
-   - Bueno para simulaciones 2D
-
-3. **Cannon.js** (alternativa a Rapier)
-   - Más estable que Rapier en algunos casos
-   - Buena documentación
-   - Comunidad activa
-
-4. **Canvas 2D API**
-   - La opción más simple
-   - Sin dependencias 3D
-   - Perfecto para visualizaciones 2D simples
-
-## Licencia
-
-MIT
-
+---
+© 2025 Desarrollado por Juanes Espinosa

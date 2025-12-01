@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import ControlsPanel from './ControlsPanel';
 import ChartsPanel from './ChartsPanel';
 import { useSimulationStore } from '@/store/simulationStore';
+import { useLanguage } from './LanguageProvider';
 
 // Importar Canvas de forma dinámica
 const Canvas = dynamic(() => import('@react-three/fiber').then(mod => ({ default: mod.Canvas })), { ssr: false });
@@ -20,6 +21,7 @@ export default function SimulationScene() {
   const [showCharts, setShowCharts] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const { projectiles, clearProjectiles } = useSimulationStore();
+  const { t } = useLanguage();
 
   useEffect(() => {
     setIsClient(true);
@@ -28,7 +30,7 @@ export default function SimulationScene() {
   if (!isClient) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="text-white text-xl">Cargando...</div>
+        <div className="text-white text-xl">{t('app.loading')}</div>
       </div>
     );
   }
@@ -105,7 +107,7 @@ export default function SimulationScene() {
         onClick={() => setShowCharts(!showCharts)}
         className="absolute top-4 right-4 z-10 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg transition-colors"
       >
-        {showCharts ? 'Ocultar Gráficas' : 'Mostrar Gráficas'}
+        {showCharts ? t('app.hideCharts') : t('app.showCharts')}
       </button>
 
       {/* Botón para limpiar proyectiles */}
@@ -113,7 +115,7 @@ export default function SimulationScene() {
         onClick={clearProjectiles}
         className="absolute top-4 right-44 z-10 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg shadow-lg transition-colors"
       >
-        Limpiar
+        {t('app.clear')}
       </button>
 
       {/* Panel de Gráficas */}

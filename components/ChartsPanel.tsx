@@ -117,9 +117,9 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
       const data = payload[0].payload;
       return (
         <div className="bg-black/80 backdrop-blur-md border border-white/10 p-3 rounded-lg shadow-xl text-xs z-50">
-          <p className="text-white/60 mb-1">{`Distancia Horizontal: ${data.x.toFixed(2)}m`}</p>
-          <p className="text-white/60 mb-1">{`Distancia Vertical: ${data.y.toFixed(2)}m`}</p>
-          <p className="text-white/40 mb-1">{`Tiempo: ${data.time.toFixed(3)}s`}</p>
+          <p className="text-white/60 mb-1">{`${t('charts.horizontalPosition')}: ${data.x.toFixed(2)}m`}</p>
+          <p className="text-white/60 mb-1">{`${t('charts.verticalPosition')}: ${data.y.toFixed(2)}m`}</p>
+          <p className="text-white/40 mb-1">{`${t('charts.time')}: ${data.time.toFixed(3)}s`}</p>
         </div>
       );
     }
@@ -268,7 +268,7 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-full text-white/30">
-              Cargando gráficas...
+              {t('app.loading')}
             </div>
           )}
         </div>
@@ -327,7 +327,7 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
                 {/* Variables Grid (Only if selected) */}
                 {selectedShotId === data.id && (
                   <div className="mt-4 pt-4 border-t border-white/10">
-                    <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">{t('charts.variables') || 'Variables del Disparo'}</p>
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">{t('charts.variables')}</p>
                     <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs font-mono text-white/70">
                       <div>v0: <span className="text-white">{data.velocity.toFixed(2)} m/s</span></div>
                       <div>θ: <span className="text-white">{data.angle.toFixed(1)}°</span></div>
@@ -341,7 +341,7 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
 
                     {/* Formulas Grid */}
                     <div className="mt-4 pt-4 border-t border-white/10">
-                      <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">{t('charts.formulas') || 'Fórmulas'}</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">{t('charts.formulas')}</p>
                       <div className="space-y-1 overflow-x-auto">
 
                         <>
@@ -439,23 +439,23 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
                     <>
                       {/* Linear Drag + Wind Equations */}
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Fuerza de Arrastre</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.dragForce')}</p>
                         <div className="text-base"><BlockMath math="F_{drag} = -b \cdot (v - W)" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Velocidad Horizontal</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.horizontalVelocity')}</p>
                         <div className="text-base"><BlockMath math="v_x(t) = W_x + (v_{0x} - W_x) \cdot e^{-\frac{b}{m}t}" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Posición Horizontal</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.horizontalPosition')}</p>
                         <div className="text-base"><BlockMath math="x(t) = W_x \cdot t + \frac{m}{b}(v_{0x} - W_x)(1 - e^{-\frac{b}{m}t})" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Velocidad Vertical</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.verticalVelocity')}</p>
                         <div className="text-base"><BlockMath math="v_y(t) = (v_{0y} + \frac{mg}{b}) \cdot e^{-\frac{b}{m}t} - \frac{mg}{b}" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Posición Vertical</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.verticalPosition')}</p>
                         <div className="text-base"><BlockMath math="y(t) = \frac{m}{b}(v_{0y} + \frac{mg}{b})(1 - e^{-\frac{b}{m}t}) - \frac{mg}{b}t" /></div>
                       </div>
                     </>
@@ -463,31 +463,31 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
                     <>
                       {/* Linear Drag (No Wind) Equations */}
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Fuerza de Arrastre</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.dragForce')}</p>
                         <div className="text-base"><BlockMath math="F_{drag} = -b \cdot v" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Peso</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.weight')}</p>
                         <div className="text-base"><BlockMath math="P = m \cdot g" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Velocidad Horizontal</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.horizontalVelocity')}</p>
                         <div className="text-base"><BlockMath math="v_x(t) = v_{0x} \cdot e^{-\frac{b}{m}t}" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Posición Horizontal</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.horizontalPosition')}</p>
                         <div className="text-base"><BlockMath math="x(t) = \frac{m \cdot v_{0x}}{b} \cdot (1 - e^{-\frac{b}{m}t})" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Velocidad Vertical</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.verticalVelocity')}</p>
                         <div className="text-base"><BlockMath math="v_y(t) = (v_{0y} + \frac{mg}{b}) \cdot e^{-\frac{b}{m}t} - \frac{mg}{b}" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Posición Vertical</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.verticalPosition')}</p>
                         <div className="text-base"><BlockMath math="y(t) = \frac{m}{b}(v_{0y} + \frac{mg}{b})(1 - e^{-\frac{b}{m}t}) - \frac{mg}{b}t" /></div>
                       </div>
                       <div className="border-b border-white/5 pb-2">
-                        <p className="text-xs text-blue-400 mb-1">Velocidad Terminal</p>
+                        <p className="text-xs text-blue-400 mb-1">{t('charts.terminalVelocity')}</p>
                         <div className="text-base"><BlockMath math="v_T = \frac{mg}{b}" /></div>
                       </div>
                     </>
@@ -496,17 +496,17 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
               </div>
 
               <div className="bg-black/30 p-4 rounded-lg">
-                <h4 className="text-sm font-medium text-green-400 mb-3">Variables</h4>
+                <h4 className="text-sm font-medium text-green-400 mb-3">{t('charts.variablesTitle')}</h4>
                 <div className="grid grid-cols-2 gap-2 text-xs text-white/70 font-mono">
-                  <div><InlineMath math="v_0" />: Velocidad Inicial</div>
-                  <div><InlineMath math="\theta" />: Ángulo de Lanzamiento</div>
-                  <div><InlineMath math="g" />: Gravedad</div>
-                  <div><InlineMath math="t" />: Tiempo</div>
-                  <div><InlineMath math="m" />: Masa</div>
-                  <div><InlineMath math="b" />: Coef. Amortiguamiento</div>
+                  <div><InlineMath math="v_0" />: {t('charts.initialVelocity')}</div>
+                  <div><InlineMath math="\theta" />: {t('charts.launchAngle')}</div>
+                  <div><InlineMath math="g" />: {t('charts.gravity')}</div>
+                  <div><InlineMath math="t" />: {t('charts.time')}</div>
+                  <div><InlineMath math="m" />: {t('charts.mass')}</div>
+                  <div><InlineMath math="b" />: {t('charts.dampingCoeff')}</div>
                   {selectedShotData.windEnabled && (
                     <>
-                      <div><InlineMath math="V_w" />: Velocidad Viento</div>
+                      <div><InlineMath math="V_w" />: {t('charts.windVelocity')}</div>
                     </>
                   )}
                 </div>

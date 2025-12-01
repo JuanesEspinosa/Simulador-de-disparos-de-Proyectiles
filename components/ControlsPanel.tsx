@@ -98,7 +98,7 @@ export default function ControlsPanel() {
               type="number"
               value={velocity}
               onChange={(e) => setVelocity(parseFloat(e.target.value) || 0)}
-              className="w-20 px-2 py-1 bg-black/50 border border-white/20 rounded text-blue-400 font-mono text-right focus:outline-none focus:border-blue-500"
+              className="w-20 px-2 py-1 bg-black/50 border border-white/20 rounded text-blue-400 font-mono focus:outline-none focus:border-blue-500"
               step="0.5"
               min="5"
               max="50"
@@ -124,7 +124,7 @@ export default function ControlsPanel() {
               type="number"
               value={angle}
               onChange={(e) => setAngle(parseFloat(e.target.value) || 0)}
-              className="w-20 px-2 py-1 bg-black/50 border border-white/20 rounded text-green-400 font-mono text-right focus:outline-none focus:border-green-500"
+              className="w-20 px-2 py-1 bg-black/50 border border-white/20 rounded text-green-400 font-mono focus:outline-none focus:border-green-500"
               step="1"
               min="0"
               max="90"
@@ -150,7 +150,7 @@ export default function ControlsPanel() {
               type="number"
               value={mass}
               onChange={(e) => setMass(parseFloat(e.target.value) || 0)}
-              className="w-20 px-2 py-1 bg-black/50 border border-white/20 rounded text-purple-400 font-mono text-right focus:outline-none focus:border-purple-500"
+              className="w-20 px-2 py-1 bg-black/50 border border-white/20 rounded text-purple-400 font-mono focus:outline-none focus:border-purple-500"
               step="0.1"
               min="0.1"
               max="10"
@@ -176,7 +176,7 @@ export default function ControlsPanel() {
               type="number"
               value={gravity}
               onChange={(e) => setGravity(parseFloat(e.target.value) || 0)}
-              className="w-20 px-2 py-1 bg-black/50 border border-white/20 rounded text-red-400 font-mono text-right focus:outline-none focus:border-red-500"
+              className="w-20 px-2 py-1 bg-black/50 border border-white/20 rounded text-red-400 font-mono focus:outline-none focus:border-red-500"
               step="0.01"
               min="1.62"
               max="24.79"
@@ -197,7 +197,7 @@ export default function ControlsPanel() {
         {/* Air Resistance */}
         <div className="pt-4 border-t border-white/10">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-white/60 uppercase tracking-wider">Resistencia del Aire</span>
+            <span className="text-xs text-white/60 uppercase tracking-wider">{t('controls.airResistance')}</span>
             <button
               onClick={() => setAirResistanceEnabled(!airResistanceEnabled)}
               className={`w-10 h-5 rounded-full transition-colors relative ${airResistanceEnabled ? 'bg-orange-600' : 'bg-white/10'
@@ -211,7 +211,7 @@ export default function ControlsPanel() {
             </button>
           </div>
           <p className="text-xs text-white/40 mb-2">
-            {airResistanceEnabled ? 'b = 0.5 (Con fricción)' : 'b = 0 (Sin fricción)'}
+            {airResistanceEnabled ? t('controls.withFriction') : t('controls.noFriction')}
           </p>
         </div>
 
@@ -270,8 +270,8 @@ export default function ControlsPanel() {
                     <span className="text-yellow-500 text-lg" style={{ transform: 'rotate(180deg)' }}>➜</span>
                   </div>
                   <div className="text-xs text-white/70">
-                    <p>Viento Frontal</p>
-                    <p className="opacity-50">Opuesto al proyectil (-X)</p>
+                    <p>{t('controls.headwind')}</p>
+                    <p className="opacity-50">{t('controls.headwindDesc')}</p>
                   </div>
                 </div>
               </div>

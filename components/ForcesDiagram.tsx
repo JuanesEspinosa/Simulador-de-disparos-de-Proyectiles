@@ -161,7 +161,7 @@ export default function ForcesDiagram({ points, projectile, color, shots, curren
         <div className="bg-white/5 rounded-xl border border-white/10 p-6 mt-6">
             <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-                {t('charts.forcesDiagram') || 'Diagrama de Fuerzas'}
+                {t('charts.forcesDiagram')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -221,7 +221,7 @@ export default function ForcesDiagram({ points, projectile, color, shots, curren
                     {/* Shot Selector */}
                     {shots && onShotSelect && (
                         <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                            <label className="text-xs text-white/50 block mb-2">{t('charts.selectShot') || 'Seleccionar Disparo'}</label>
+                            <label className="text-xs text-white/50 block mb-2">{t('charts.selectShot')}</label>
                             <select
                                 value={currentShotId || ''}
                                 onChange={(e) => onShotSelect(e.target.value)}
@@ -253,54 +253,53 @@ export default function ForcesDiagram({ points, projectile, color, shots, curren
                     {/* Data Display */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-black/20 p-3 rounded border border-white/5">
-                            <div className="text-xs text-white/40 mb-1">Posición</div>
+                            <div className="text-xs text-white/40 mb-1">{t('charts.position')}</div>
                             <div className="font-mono text-white">
                                 X: {currentPoint.x.toFixed(2)}m<br />
                                 Y: {currentPoint.y.toFixed(2)}m
                             </div>
                         </div>
                         <div className="bg-black/20 p-3 rounded border border-white/5">
-                            <div className="text-xs text-white/40 mb-1">Velocidad</div>
+                            <div className="text-xs text-white/40 mb-1">{t('charts.velocity')}</div>
                             <div className="font-mono text-white">
                                 Vx: {currentPoint.vx.toFixed(2)}m/s<br />
                                 Vy: {currentPoint.vy.toFixed(2)}m/s
                             </div>
                         </div>
                         <div className="bg-red-500/10 p-3 rounded border border-red-500/20">
-                            <div className="text-xs text-red-400 mb-1">Peso (P)</div>
+                            <div className="text-xs text-red-400 mb-1">{t('charts.weight')}</div>
                             <div className="font-mono text-white">
                                 {weightMag} N
-                                <div className="text-xs opacity-50 mt-1">↓ Constante</div>
+                                <div className="text-xs opacity-50 mt-1">↓ {t('charts.constant')}</div>
                             </div>
                         </div>
                         {damping > 0 ? (
                             <div className="bg-orange-500/10 p-3 rounded border border-orange-500/20">
-                                <div className="text-xs text-orange-400 mb-1">Fricción (Fr)</div>
+                                <div className="text-xs text-orange-400 mb-1">{t('charts.friction')}</div>
                                 <div className="font-mono text-white">
                                     {dragMag} N
-                                    <div className="text-xs opacity-50 mt-1">Opuesto a V</div>
+                                    <div className="text-xs opacity-50 mt-1">{t('charts.opposingV')}</div>
                                 </div>
                             </div>
                         ) : (
                             <div className="bg-white/5 p-3 rounded border border-white/5 opacity-50">
-                                <div className="text-xs text-white/40 mb-1">Fricción</div>
-                                <div className="text-xs text-white/20">Desactivada</div>
+                                <div className="text-xs text-white/40 mb-1">{t('charts.friction')}</div>
+                                <div className="text-xs text-white/20">{t('charts.disabled')}</div>
                             </div>
                         )}
                         {windEnabled && (
                             <div className="bg-cyan-500/10 p-3 rounded border border-cyan-500/20 col-span-2 md:col-span-1">
-                                <div className="text-xs text-cyan-400 mb-1">Viento (Vw)</div>
+                                <div className="text-xs text-cyan-400 mb-1">{t('charts.wind')}</div>
                                 <div className="font-mono text-white">
                                     {windForce} m/s
-                                    <div className="text-xs opacity-50 mt-1">Dirección: {windDirection}°</div>
+                                    <div className="text-xs opacity-50 mt-1">{t('charts.direction')}: {windDirection}°</div>
                                 </div>
                             </div>
                         )}
                     </div>
 
                     <div className="text-xs text-white/30 italic">
-                        * El diagrama muestra las fuerzas instantáneas en el punto seleccionado.
-                        La escala de los vectores es aproximada para visualización.
+                        {t('charts.diagramDisclaimer')}
                     </div>
                 </div>
             </div>
