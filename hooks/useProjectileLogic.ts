@@ -55,12 +55,77 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
         });
     }, [showTrajectories]);
 
+    // Clean up projectiles that were removed from the store
+    useEffect(() => {
+        if (!scene) return;
+
+        const currentIds = projectiles.map(p => p.id);
+        const trackedIds = projectilesRef.current.map(p => p.id);
+
+        // Find projectiles that were removed
+        const removedIds = trackedIds.filter(id => !currentIds.includes(id));
+
+        removedIds.forEach(removedId => {
+            // Find and remove from projectilesRef
+            const index = projectilesRef.current.findIndex(p => p.id === removedId);
+            if (index !== -1) {
+                const proj = projectilesRef.current[index];
+
+                // Remove mesh from scene
+                if (proj.mesh) {
+                    scene.remove(proj.mesh);
+                    proj.mesh.traverse((child) => {
+                        if (child instanceof THREE.Mesh) {
+                            child.geometry?.dispose();
+                            if (Array.isArray(child.material)) {
+                                child.material.forEach(m => m.dispose());
+                            } else {
+                                child.material?.dispose();
+                            }
+                        }
+                    });
+                }
+
+                // Remove from array
+                projectilesRef.current.splice(index, 1);
+            }
+
+            // Find and remove trajectory line
+            const trajIndex = trajectoryLinesRef.current.findIndex(t => t.userData.projectileId === removedId);
+            if (trajIndex !== -1) {
+                const line = trajectoryLinesRef.current[trajIndex];
+                scene.remove(line);
+                line.geometry?.dispose();
+                (line.material as THREE.Material)?.dispose();
+                trajectoryLinesRef.current.splice(trajIndex, 1);
+            }
+
+            // Find and remove impact marker
+            const impactIndex = impactMarkersRef.current.findIndex(i => i.userData.projectileId === removedId);
+            if (impactIndex !== -1) {
+                const impact = impactMarkersRef.current[impactIndex];
+                scene.remove(impact);
+                impact.traverse((child) => {
+                    if (child instanceof THREE.Mesh) {
+                        child.geometry?.dispose();
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(m => m.dispose());
+                        } else {
+                            child.material?.dispose();
+                        }
+                    }
+                });
+                impactMarkersRef.current.splice(impactIndex, 1);
+            }
+        });
+    }, [projectiles, scene]);
+
     // Initialize new projectiles
     useEffect(() => {
         if (!scene) return;
 
         const existingIds = projectilesRef.current.map((p) => p.id);
-        const newProjectiles = projectiles.filter((proj) => !existingIds.includes(proj.id));
+        const newProjectiles = projectiles.filter((proj) => !existingIds.includes(proj.id) && proj.status === 'flying');
 
         if (newProjectiles.length === 0) return;
 
@@ -118,6 +183,7 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
             const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff00ff, linewidth: 2, transparent: true, opacity: 0.8 });
             const trajectoryLine = new THREE.Line(lineGeometry, lineMaterial);
             trajectoryLine.visible = showTrajectories;
+            trajectoryLine.userData.projectileId = proj.id;
             scene.add(trajectoryLine);
 
             projectilesRef.current.push({
@@ -154,7 +220,7 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
                 // Use variable gravity from projectile data (captured at launch)
                 // If gravity was not captured (old projectiles), use default 9.81
                 const g = proj.gravity || 9.81;
-                const damping = proj.damping || 0.5; // b coefficient
+                const damping = proj.damping ?? 0.5; // b coefficient
 
                 // Linear Drag Model: F_drag = -b * v
                 // With Wind: F_drag = -b * (v - V_wind)
@@ -177,7 +243,7 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
 
                 // Drag Force: F_d = -b * v_rel
                 // Acceleration due to drag: a_d = F_d / m = -(b/m) * v_rel
-                const dragAcceleration = relativeVelocity.multiplyScalar(-damping / proj.mass);
+                const dragAcceleration = relativeVelocity.clone().multiplyScalar(-damping / proj.mass);
 
                 // Total Acceleration: a = g + a_d
                 // g is (0, -g, 0)
@@ -185,7 +251,7 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
                 totalAcceleration.y -= g;
 
                 // Update Velocity: v = v + a * dt
-                proj.velocity.add(totalAcceleration.multiplyScalar(deltaTime));
+                proj.velocity.add(totalAcceleration.clone().multiplyScalar(deltaTime));
 
                 // Update Position: p = p + v * dt
                 const movement = proj.velocity.clone().multiplyScalar(deltaTime);
@@ -247,6 +313,7 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
         marker.rotation.x = -Math.PI / 2;
         marker.position.copy(impactPos);
         marker.visible = useSimulationStore.getState().showImpacts;
+        marker.userData.projectileId = proj.id;
         scene.add(marker);
         impactMarkersRef.current.push(marker);
 
@@ -259,12 +326,13 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
             context.fillStyle = '#ffffff'; context.fillRect(0, 0, canvas.width, canvas.height);
             context.font = 'Bold 48px Arial'; context.fillStyle = '#000000';
             context.textAlign = 'center'; context.textBaseline = 'middle';
-            context.fillText(`${alcance.toFixed(1)}m`, canvas.width / 2, canvas.height / 2);
+            context.fillText(`${alcance.toFixed(3)}m`, canvas.width / 2, canvas.height / 2);
             const texture = new THREE.CanvasTexture(canvas);
             const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
             sprite.position.set(impactPos.x, 0.8, impactPos.z);
             sprite.scale.set(2, 1, 1);
             sprite.visible = useSimulationStore.getState().showImpacts;
+            sprite.userData.projectileId = proj.id;
             scene.add(sprite);
             impactMarkersRef.current.push(sprite);
         }
@@ -284,7 +352,8 @@ export function useProjectileLogic(scene: THREE.Scene | null) {
             }
         });
 
-        removeProjectile(proj.id);
+        // Update status to landed so controls know it's done
+        useSimulationStore.getState().updateProjectileStatus(proj.id, 'landed');
     };
 
     const createExplosion = (position: THREE.Vector3, scene: THREE.Scene) => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
+import CopyrightFooter from '@/components/CopyrightFooter';
 
 // Usando versión simple con Three.js directo (más estable)
 const USE_SIMPLE = true;
@@ -42,7 +43,9 @@ export default function Home() {
   return (
     <main className="min-h-screen w-full">
       {USE_SIMPLE ? <SimpleSimulation /> : <SimulationScene />}
+      <CopyrightFooter />
     </main>
   );
 }
+
 

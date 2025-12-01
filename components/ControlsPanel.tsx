@@ -9,7 +9,7 @@ const INITIAL_VALUES = {
   mass: 1,
   gravity: 9.81,
   windForce: 0.5,
-  windDirection: 0,
+  windDirection: 180,
 };
 
 export default function ControlsPanel() {
@@ -18,6 +18,7 @@ export default function ControlsPanel() {
     angle,
     mass,
     gravity,
+    airResistanceEnabled,
     windEnabled,
     windForce,
     windDirection,
@@ -26,6 +27,7 @@ export default function ControlsPanel() {
     setAngle,
     setMass,
     setGravity,
+    setAirResistanceEnabled,
     setWindEnabled,
     setWindForce,
     setWindDirection,
@@ -34,7 +36,7 @@ export default function ControlsPanel() {
 
   const { t, locale, setLocale } = useLanguage();
 
-  const hasActiveProjectile = projectiles.length > 0;
+  const hasActiveProjectile = projectiles.some(p => p.status === 'flying');
 
   const handleFire = () => {
     const angleRad = (angle * Math.PI) / 180;
@@ -47,10 +49,10 @@ export default function ControlsPanel() {
       initialVelocity: [vx, vy, vz],
       mass,
       gravity,
-      damping: 0.5,
+      damping: airResistanceEnabled ? 0.5 : 0,
       windEnabled,
       windForce,
-      windDirection,
+      windDirection: 180, // Force headwind
     });
   };
 
@@ -192,6 +194,27 @@ export default function ControlsPanel() {
           />
         </div>
 
+        {/* Air Resistance */}
+        <div className="pt-4 border-t border-white/10">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-white/60 uppercase tracking-wider">Resistencia del Aire</span>
+            <button
+              onClick={() => setAirResistanceEnabled(!airResistanceEnabled)}
+              className={`w-10 h-5 rounded-full transition-colors relative ${airResistanceEnabled ? 'bg-orange-600' : 'bg-white/10'
+                }`}
+              aria-label="Toggle Air Resistance"
+            >
+              <div
+                className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform ${airResistanceEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+              />
+            </button>
+          </div>
+          <p className="text-xs text-white/40 mb-2">
+            {airResistanceEnabled ? 'b = 0.5 (Con fricción)' : 'b = 0 (Sin fricción)'}
+          </p>
+        </div>
+
         {/* Viento */}
         <div className="pt-4 border-t border-white/10">
           <div className="flex items-center justify-between mb-4">
@@ -236,43 +259,20 @@ export default function ControlsPanel() {
               </div>
 
               {/* Dirección del Viento */}
+              {/* Dirección del Viento (Fixed) */}
               <div>
-                <div className="flex justify-between items-center text-xs text-white/60 mb-3">
-                  <span>{t('controls.windDirection') + ' (°)'}</span>
-                  <input
-                    type="number"
-                    value={windDirection}
-                    onChange={(e) => setWindDirection(parseFloat(e.target.value) || 0)}
-                    className="w-20 px-2 py-1 bg-black/50 border border-white/20 rounded text-yellow-400 font-mono text-right focus:outline-none focus:border-yellow-500"
-                    step="15"
-                    min="0"
-                    max="360"
-                  />
+                <div className="flex justify-between items-center text-xs text-white/60 mb-2">
+                  <span>{t('controls.windDirection')}</span>
+                  <span className="text-yellow-400 font-mono">180° (En contra)</span>
                 </div>
-                <div className="relative flex items-center mb-6">
-                  <input
-                    type="range"
-                    min="0"
-                    max="360"
-                    step="15"
-                    value={windDirection}
-                    onChange={(e) => setWindDirection(parseFloat(e.target.value))}
-                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-yellow-500 hover:accent-yellow-400"
-                    aria-label={t('controls.windDirection')}
-                  />
-                  {/* Visual Indicator for Wind Direction */}
-                  <div
-                    className="absolute right-[90px] -top-9 w-6 h-6 border border-white/20 rounded-full flex items-center justify-center"
-                    style={{ transform: `rotate(${-windDirection}deg)` }}
-                  >
-                    <span className="text-yellow-500 text-xs">➜</span>
+                <div className="p-3 bg-white/5 rounded-lg border border-white/10 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center border border-yellow-500/30">
+                    <span className="text-yellow-500 text-lg" style={{ transform: 'rotate(180deg)' }}>➜</span>
                   </div>
-                </div>
-                <div className="flex justify-between text-[10px] text-white/30 mt-1 px-1">
-                  <span>E (+X)</span>
-                  <span>N (-Z)</span>
-                  <span>W (-X)</span>
-                  <span>S (+Z)</span>
+                  <div className="text-xs text-white/70">
+                    <p>Viento Frontal</p>
+                    <p className="opacity-50">Opuesto al proyectil (-X)</p>
+                  </div>
                 </div>
               </div>
             </div>

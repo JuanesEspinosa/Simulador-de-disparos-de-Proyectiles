@@ -17,6 +17,7 @@ interface Projectile {
   windEnabled: boolean;
   windForce: number;
   windDirection: number;
+  status: 'flying' | 'landed';
 }
 
 interface SimulationState {
@@ -26,6 +27,7 @@ interface SimulationState {
   mass: number;
   gravity: number;
   damping: number;
+  airResistanceEnabled: boolean;
   windEnabled: boolean;
   windForce: number;
   windDirection: number;
@@ -47,6 +49,7 @@ interface SimulationState {
   setMass: (mass: number) => void;
   setGravity: (gravity: number) => void;
   setDamping: (damping: number) => void;
+  setAirResistanceEnabled: (enabled: boolean) => void;
   setWindEnabled: (enabled: boolean) => void;
   setWindForce: (force: number) => void;
   setWindDirection: (direction: number) => void;
@@ -56,9 +59,10 @@ interface SimulationState {
   toggleShowTrajectories: () => void;
 
   // Acciones
-  fireProjectile: (projectile: Omit<Projectile, 'id'>) => void;
+  fireProjectile: (projectile: Omit<Projectile, 'id' | 'status'>) => void;
   clearProjectiles: () => void;
   removeProjectile: (projectileId: string) => void;
+  updateProjectileStatus: (projectileId: string, status: 'flying' | 'landed') => void;
   addTrajectoryPoint: (projectileId: string, point: TrajectoryPoint) => void;
 }
 
@@ -69,6 +73,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   mass: 1,
   gravity: 9.81,
   damping: 0.5,
+  airResistanceEnabled: true,
   windEnabled: false,
   windForce: 0.5,
   windDirection: 0, // 0 degrees = wind blowing towards +X
@@ -86,6 +91,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   setMass: (mass) => set({ mass }),
   setGravity: (gravity) => set({ gravity }),
   setDamping: (damping) => set({ damping }),
+  setAirResistanceEnabled: (airResistanceEnabled) => set({ airResistanceEnabled }),
   setWindEnabled: (windEnabled) => set({ windEnabled }),
   setWindForce: (windForce) => set({ windForce }),
   setWindDirection: (windDirection) => set({ windDirection }),
@@ -98,7 +104,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
     set((state) => {
       const id = `projectile-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       return {
-        projectiles: [...state.projectiles, { ...projectile, id }],
+        projectiles: [...state.projectiles, { ...projectile, id, status: 'flying' }],
         trajectories: { ...state.trajectories, [id]: [] },
       };
     }),
@@ -110,8 +116,19 @@ export const useSimulationStore = create<SimulationState>((set) => ({
     }),
 
   removeProjectile: (projectileId) =>
+    set((state) => {
+      const { [projectileId]: _, ...remainingTrajectories } = state.trajectories;
+      return {
+        projectiles: state.projectiles.filter((p) => p.id !== projectileId),
+        trajectories: remainingTrajectories,
+      };
+    }),
+
+  updateProjectileStatus: (projectileId, status) =>
     set((state) => ({
-      projectiles: state.projectiles.filter((p) => p.id !== projectileId),
+      projectiles: state.projectiles.map((p) =>
+        p.id === projectileId ? { ...p, status } : p
+      ),
     })),
 
   addTrajectoryPoint: (projectileId, point) =>

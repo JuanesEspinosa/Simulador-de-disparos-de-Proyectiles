@@ -11,9 +11,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from './LanguageProvider';
 import ForcesDiagram from './ForcesDiagram';
+
+import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
 
 interface ChartsPanelProps {
   onClose: () => void;
@@ -27,16 +30,30 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
   const [tableShotId, setTableShotId] = useState<string | null>(null);
   const { t } = useLanguage();
 
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Prepare data for charts and analytics
   const processedData = useMemo(() => {
     return Object.entries(trajectories).map(([id, points]) => {
       const projectile = projectiles.find((p) => p.id === id);
-      const color = projectile ? `#${Math.floor(Math.random() * 16777215).toString(16)}` : '#ff0000';
+      // Use vivid colors (high saturation, medium-high lightness)
+      const hue = Math.floor(Math.random() * 360);
+      const color = projectile ? `hsl(${hue}, 100%, 60%)` : '#ff0000';
 
       // Calculate analytics
-      const maxHeight = Math.max(...points.map(p => p.y));
-      const maxRange = Math.max(...points.map(p => p.x));
-      const flightTime = points.length > 0 ? points[points.length - 1].time : 0;
+      let maxHeight = 0;
+      let maxRange = 0;
+      let flightTime = 0;
+
+      if (points.length > 0) {
+        maxHeight = Math.max(...points.map(p => p.y));
+        maxRange = Math.max(...points.map(p => p.x));
+        flightTime = points[points.length - 1].time;
+      }
 
       // Calculate velocities for table
       const pointsWithVelocity = points.map((p, i, arr) => {
@@ -61,6 +78,15 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
         return { ...p, vx, vy };
       });
 
+      // Calculate initial velocity and angle from initialVelocity
+      let initialSpeed = 0;
+      let launchAngle = 0;
+      if (projectile?.initialVelocity) {
+        const [vx, vy] = projectile.initialVelocity;
+        initialSpeed = Math.sqrt(vx * vx + vy * vy);
+        launchAngle = Math.atan2(vy, vx) * (180 / Math.PI);
+      }
+
       return {
         id,
         points: pointsWithVelocity,
@@ -68,10 +94,12 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
         name: `${t('charts.shot')} ${id.substr(-4)}`,
         windEnabled: projectile?.windEnabled,
         config: projectile,
+        velocity: initialSpeed,
+        angle: launchAngle,
         stats: {
-          maxHeight,
-          maxRange,
-          flightTime
+          maxHeight: isFinite(maxHeight) ? maxHeight : 0,
+          maxRange: isFinite(maxRange) ? maxRange : 0,
+          flightTime: isFinite(flightTime) ? flightTime : 0
         }
       };
     });
@@ -86,14 +114,12 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0].payload;
       return (
         <div className="bg-black/80 backdrop-blur-md border border-white/10 p-3 rounded-lg shadow-xl text-xs z-50">
-          <p className="text-white/60 mb-1">{`${t('charts.time')}: ${label}`}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="font-mono">
-              {`${entry.name}: ${entry.value.toFixed(2)}`}
-            </p>
-          ))}
+          <p className="text-white/60 mb-1">{`Distancia Horizontal: ${data.x.toFixed(2)}m`}</p>
+          <p className="text-white/60 mb-1">{`Distancia Vertical: ${data.y.toFixed(2)}m`}</p>
+          <p className="text-white/40 mb-1">{`Tiempo: ${data.time.toFixed(3)}s`}</p>
         </div>
       );
     }
@@ -140,6 +166,7 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"
             title={isExpanded ? t('charts.collapse') : t('charts.expand')}
+            aria-label={isExpanded ? t('charts.collapse') : t('charts.expand')}
           >
             {isExpanded ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6" /></svg>
@@ -151,6 +178,7 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"
             title={t('charts.close')}
+            aria-label={t('charts.close')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
           </button>
@@ -162,135 +190,186 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
 
         {/* Charts Section */}
         <div className="h-[300px] w-full shrink-0">
-          <ResponsiveContainer width="100%" height="100%">
-            {activeTab === 'trajectory' ? (
-              <LineChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-                <XAxis type="number" dataKey="x" name="Distancia" unit="m" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} />
-                <YAxis type="number" dataKey="y" name="Altura" unit="m" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                {processedData.map((series) => (
-                  <Line
-                    key={series.id}
-                    data={series.points}
-                    type="monotone"
-                    dataKey="y"
-                    name={series.name}
-                    stroke={series.color}
-                    strokeWidth={selectedShotId === series.id ? 4 : 2}
-                    strokeOpacity={selectedShotId && selectedShotId !== series.id ? 0.1 : 1}
-                    dot={false}
-                    activeDot={{ r: 6, onClick: () => handleLineClick(series) }}
-                    cursor="pointer"
-                    onClick={() => handleLineClick(series)}
-                  />
-                ))}
-              </LineChart>
-            ) : activeTab === 'height' ? (
-              <LineChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-                <XAxis type="number" dataKey="time" name="Tiempo" unit="s" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} allowDuplicatedCategory={false} />
-                <YAxis type="number" dataKey="y" name="Altura" unit="m" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                {processedData.map((series) => (
-                  <Line
-                    key={series.id}
-                    data={series.points}
-                    type="monotone"
-                    dataKey="y"
-                    name={series.name}
-                    stroke={series.color}
-                    strokeWidth={selectedShotId === series.id ? 4 : 2}
-                    strokeOpacity={selectedShotId && selectedShotId !== series.id ? 0.1 : 1}
-                    dot={false}
-                    activeDot={{ r: 6, onClick: () => handleLineClick(series) }}
-                    cursor="pointer"
-                    onClick={() => handleLineClick(series)}
-                  />
-                ))}
-              </LineChart>
-            ) : (
-              <LineChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-                <XAxis type="number" dataKey="time" name="Tiempo" unit="s" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} allowDuplicatedCategory={false} />
-                <YAxis type="number" name="Velocidad" unit="m/s" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                {processedData.map((series) => (
-                  <Line
-                    key={series.id}
-                    data={series.points}
-                    type="monotone"
-                    dataKey="vx" // Showing Vx for now
-                    name={series.name}
-                    stroke={series.color}
-                    strokeWidth={selectedShotId === series.id ? 4 : 2}
-                    strokeOpacity={selectedShotId && selectedShotId !== series.id ? 0.1 : 1}
-                    dot={false}
-                    activeDot={{ r: 6, onClick: () => handleLineClick(series) }}
-                    cursor="pointer"
-                    onClick={() => handleLineClick(series)}
-                  />
-                ))}
-              </LineChart>
-            )}
-          </ResponsiveContainer>
+          {isMounted ? (
+            <ResponsiveContainer width="100%" height="100%">
+              {activeTab === 'trajectory' ? (
+                <LineChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis type="number" dataKey="x" name="Distancia" unit="m" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} />
+                  <YAxis type="number" dataKey="y" name="Altura" unit="m" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                  {processedData.map((series) => (
+                    <Line
+                      key={series.id}
+                      data={series.points}
+                      type="monotone"
+                      dataKey="y"
+                      name={series.name}
+                      stroke={series.color}
+                      strokeWidth={selectedShotId === series.id ? 4 : 2}
+                      strokeOpacity={selectedShotId && selectedShotId !== series.id ? 0.1 : 1}
+                      dot={selectedShotId === series.id ? { r: 3, fill: series.color, strokeWidth: 0 } : false}
+                      activeDot={selectedShotId === series.id ? { r: 6, fill: series.color, stroke: '#fff', strokeWidth: 2 } : false}
+                      cursor="pointer"
+                      onClick={() => handleLineClick(series)}
+                    />
+                  ))}
+                </LineChart>
+              ) : activeTab === 'height' ? (
+                <LineChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis type="number" dataKey="time" name="Tiempo" unit="s" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} allowDuplicatedCategory={false} />
+                  <YAxis type="number" dataKey="y" name="Altura" unit="m" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                  {processedData.map((series) => (
+                    <Line
+                      key={series.id}
+                      data={series.points}
+                      type="monotone"
+                      dataKey="y"
+                      name={series.name}
+                      stroke={series.color}
+                      strokeWidth={selectedShotId === series.id ? 4 : 2}
+                      strokeOpacity={selectedShotId && selectedShotId !== series.id ? 0.1 : 1}
+                      dot={selectedShotId === series.id ? { r: 3, fill: series.color, strokeWidth: 0 } : false}
+                      activeDot={selectedShotId === series.id ? { r: 6, fill: series.color, stroke: '#fff', strokeWidth: 2 } : false}
+                      cursor="pointer"
+                      onClick={() => handleLineClick(series)}
+                    />
+                  ))}
+                </LineChart>
+              ) : (
+                <LineChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis type="number" dataKey="time" name="Tiempo" unit="s" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} allowDuplicatedCategory={false} />
+                  <YAxis type="number" name="Velocidad" unit="m/s" stroke="#ffffff50" tick={{ fill: '#ffffff50', fontSize: 10 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                  {processedData.map((series) => (
+                    <Line
+                      key={series.id}
+                      data={series.points}
+                      type="monotone"
+                      dataKey="vx" // Showing Vx for now
+                      name={series.name}
+                      stroke={series.color}
+                      strokeWidth={selectedShotId === series.id ? 4 : 2}
+                      strokeOpacity={selectedShotId && selectedShotId !== series.id ? 0.1 : 1}
+                      dot={selectedShotId === series.id ? { r: 3, fill: series.color, strokeWidth: 0 } : false}
+                      activeDot={selectedShotId === series.id ? { r: 6, fill: series.color, stroke: '#fff', strokeWidth: 2 } : false}
+                      cursor="pointer"
+                      onClick={() => handleLineClick(series)}
+                    />
+                  ))}
+                </LineChart>
+              )}
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full text-white/30">
+              Cargando gráficas...
+            </div>
+          )}
         </div>
 
         {/* Analytics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {processedData.map((data) => (
-            <div
-              key={data.id}
-              className={`p-4 rounded-xl border transition-all cursor-pointer ${selectedShotId === data.id
-                ? 'bg-white/10 border-white/30 ring-1 ring-white/50'
-                : 'bg-white/5 border-white/10 hover:bg-white/10'
-                } ${selectedShotId && selectedShotId !== data.id ? 'opacity-40' : 'opacity-100'}`}
-              onClick={() => {
-                setSelectedShotId(prev => prev === data.id ? null : data.id);
-                setTableShotId(data.id);
-              }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-white" style={{ color: data.color }}>{data.name}</h3>
-                {selectedShotId === data.id && <span className="text-xs bg-white/20 px-2 py-0.5 rounded text-white">{t('charts.selected')}</span>}
+        {processedData.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+            {processedData.map((data) => (
+              <div
+                key={data.id}
+                onClick={() => handleLineClick(data)}
+                className={`relative p-4 rounded-xl border transition-all cursor-pointer group ${selectedShotId === data.id
+                  ? 'bg-white/10 border-white/30 shadow-lg shadow-white/5'
+                  : 'bg-black/40 border-white/5 hover:bg-white/5 hover:border-white/10'
+                  }`}
+              >
+                {/* Header */}
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
+                      {data.name}
+                    </h3>
+                    <p className="text-xs text-white/40 mt-0.5">
+                      {data.config?.mass}kg • {data.velocity.toFixed(1)}m/s • {data.angle.toFixed(1)}°
+                    </p>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      useSimulationStore.getState().removeProjectile(data.id);
+                    }}
+                    className="p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                    title={t('charts.delete')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                  </button>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-black/30 p-2 rounded-lg">
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">{t('charts.flightTime')}</p>
+                    <p className="text-sm font-mono text-white/90">{data.stats.flightTime.toFixed(3)}s</p>
+                  </div>
+                  <div className="bg-black/30 p-2 rounded-lg">
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">{t('charts.maxRange')}</p>
+                    <p className="text-sm font-mono text-white/90">{data.stats.maxRange.toFixed(2)}m</p>
+                  </div>
+                  <div className="bg-black/30 p-2 rounded-lg">
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">{t('charts.maxHeight')}</p>
+                    <p className="text-sm font-mono text-white/90">{data.stats.maxHeight.toFixed(2)}m</p>
+                  </div>
+                </div>
+
+                {/* Variables Grid (Only if selected) */}
+                {selectedShotId === data.id && (
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">{t('charts.variables') || 'Variables del Disparo'}</p>
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs font-mono text-white/70">
+                      <div>v0: <span className="text-white">{data.velocity.toFixed(2)} m/s</span></div>
+                      <div>θ: <span className="text-white">{data.angle.toFixed(1)}°</span></div>
+                      <div>g: <span className="text-white">{data.config?.gravity} m/s²</span></div>
+                      <div>m: <span className="text-white">{data.config?.mass} kg</span></div>
+                      <div>b: <span className="text-white">{data.config?.damping}</span></div>
+                      {data.windEnabled && (
+                        <div>Vw: <span className="text-white">{data.config?.windForce} m/s</span></div>
+                      )}
+                    </div>
+
+                    {/* Formulas Grid */}
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      <p className="text-[10px] text-white/40 uppercase tracking-wider mb-2">{t('charts.formulas') || 'Fórmulas'}</p>
+                      <div className="space-y-1 overflow-x-auto">
+
+                        <>
+                          <div className="text-lg text-white/80"><BlockMath math="F_{drag} = -b \cdot v" /></div>
+                          <div className="text-lg text-white/80"><BlockMath math="v_x(t) = v_{0x} \cdot e^{-\frac{b}{m}t}" /></div>
+                          <div className="text-lg text-white/80"><BlockMath math="x(t) = \frac{m \cdot v_{0x}}{b} \cdot (1 - e^{-\frac{b}{m}t})" /></div>
+                          <div className="text-lg text-white/80"><BlockMath math="v_y(t) = (v_{0y} + \frac{mg}{b}) \cdot e^{-\frac{b}{m}t} - \frac{mg}{b}" /></div>
+                          <div className="text-lg text-white/80"><BlockMath math="y(t) = \frac{m}{b}(v_{0y} + \frac{mg}{b})(1 - e^{-\frac{b}{m}t}) - \frac{mg}{b}t" /></div>
+                        </>
+
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <p className="text-xs text-white/50">{t('charts.flightTime')}</p>
-                  <p className="text-lg font-mono text-white">{data.stats.flightTime.toFixed(3)}s</p>
-                </div>
-                <div>
-                  <p className="text-xs text-white/50">{t('charts.maxRange')}</p>
-                  <p className="text-lg font-mono text-white">{data.stats.maxRange.toFixed(2)}m</p>
-                </div>
-                <div>
-                  <p className="text-xs text-white/50">{t('charts.maxHeight')}</p>
-                  <p className="text-lg font-mono text-white">{data.stats.maxHeight.toFixed(2)}m</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Forces Diagram */}
-        {selectedShotData && (
+        {selectedShotData && selectedShotData.config && (
           <ForcesDiagram
             points={selectedShotData.points}
-            projectile={selectedShotData.config || {
-              mass: 1,
-              damping: 0.5,
-              gravity: 9.81,
-              windEnabled: selectedShotData.windEnabled || false,
-              windForce: 0.5,
-              windDirection: 0
-            }}
+            projectile={selectedShotData.config}
             color={selectedShotData.color}
             shots={processedData.map(d => ({ id: d.id, name: d.name }))}
             currentShotId={tableShotId || undefined}
-            onShotSelect={(id) => setTableShotId(id)}
+            onShotSelect={setTableShotId}
           />
         )}
 
@@ -355,53 +434,61 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
                 <h4 className="text-sm font-medium text-blue-400 mb-3">
                   {selectedShotData.windEnabled ? t('charts.windMotion') : t('charts.standardMotion')}
                 </h4>
-                <div className="space-y-3 font-mono text-xs text-white/80">
+                <div className="space-y-6 font-mono text-white/90">
                   {selectedShotData.windEnabled ? (
                     <>
                       {/* Linear Drag + Wind Equations */}
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>F_drag = -b * (v - V_wind)</span>
-                        <span className="text-white/40">Drag Force (Linear)</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Fuerza de Arrastre</p>
+                        <div className="text-base"><BlockMath math="F_{drag} = -b \cdot (v - W)" /></div>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>vx(t) = Vw + (v0x - Vw) * e^(-bt/m)</span>
-                        <span className="text-white/40">Velocity X</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Velocidad Horizontal</p>
+                        <div className="text-base"><BlockMath math="v_x(t) = W_x + (v_{0x} - W_x) \cdot e^{-\frac{b}{m}t}" /></div>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>vy(t) = (mg/b + v0y) * e^(-bt/m) - mg/b</span>
-                        <span className="text-white/40">Velocity Y</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Posición Horizontal</p>
+                        <div className="text-base"><BlockMath math="x(t) = W_x \cdot t + \frac{m}{b}(v_{0x} - W_x)(1 - e^{-\frac{b}{m}t})" /></div>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>x(t) = Vw*t + (m/b)*(v0x - Vw)*(1 - e^(-bt/m))</span>
-                        <span className="text-white/40">Position X</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Velocidad Vertical</p>
+                        <div className="text-base"><BlockMath math="v_y(t) = (v_{0y} + \frac{mg}{b}) \cdot e^{-\frac{b}{m}t} - \frac{mg}{b}" /></div>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>y(t) = (m/b)*(mg/b + v0y)*(1 - e^(-bt/m)) - (mg/b)*t</span>
-                        <span className="text-white/40">Position Y</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Posición Vertical</p>
+                        <div className="text-base"><BlockMath math="y(t) = \frac{m}{b}(v_{0y} + \frac{mg}{b})(1 - e^{-\frac{b}{m}t}) - \frac{mg}{b}t" /></div>
                       </div>
                     </>
                   ) : (
                     <>
                       {/* Linear Drag (No Wind) Equations */}
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>F_drag = -b * v</span>
-                        <span className="text-white/40">Drag Force (Linear)</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Fuerza de Arrastre</p>
+                        <div className="text-base"><BlockMath math="F_{drag} = -b \cdot v" /></div>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>vx(t) = v0x * e^(-bt/m)</span>
-                        <span className="text-white/40">Velocity X</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Peso</p>
+                        <div className="text-base"><BlockMath math="P = m \cdot g" /></div>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>vy(t) = (mg/b + v0y) * e^(-bt/m) - mg/b</span>
-                        <span className="text-white/40">Velocity Y</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Velocidad Horizontal</p>
+                        <div className="text-base"><BlockMath math="v_x(t) = v_{0x} \cdot e^{-\frac{b}{m}t}" /></div>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>x(t) = (m*v0x/b) * (1 - e^(-bt/m))</span>
-                        <span className="text-white/40">Position X</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Posición Horizontal</p>
+                        <div className="text-base"><BlockMath math="x(t) = \frac{m \cdot v_{0x}}{b} \cdot (1 - e^{-\frac{b}{m}t})" /></div>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-1">
-                        <span>y(t) = (m/b)*(mg/b + v0y)*(1 - e^(-bt/m)) - (mg/b)*t</span>
-                        <span className="text-white/40">Position Y</span>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Velocidad Vertical</p>
+                        <div className="text-base"><BlockMath math="v_y(t) = (v_{0y} + \frac{mg}{b}) \cdot e^{-\frac{b}{m}t} - \frac{mg}{b}" /></div>
+                      </div>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Posición Vertical</p>
+                        <div className="text-base"><BlockMath math="y(t) = \frac{m}{b}(v_{0y} + \frac{mg}{b})(1 - e^{-\frac{b}{m}t}) - \frac{mg}{b}t" /></div>
+                      </div>
+                      <div className="border-b border-white/5 pb-2">
+                        <p className="text-xs text-blue-400 mb-1">Velocidad Terminal</p>
+                        <div className="text-base"><BlockMath math="v_T = \frac{mg}{b}" /></div>
                       </div>
                     </>
                   )}
@@ -411,15 +498,15 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
               <div className="bg-black/30 p-4 rounded-lg">
                 <h4 className="text-sm font-medium text-green-400 mb-3">Variables</h4>
                 <div className="grid grid-cols-2 gap-2 text-xs text-white/70 font-mono">
-                  <div>v0: Initial Velocity</div>
-                  <div>θ: Launch Angle</div>
-                  <div>g: Gravity (Variable)</div>
-                  <div>t: Time</div>
-                  <div>m: Mass</div>
-                  <div>b: Damping Coeff (0.5)</div>
+                  <div><InlineMath math="v_0" />: Velocidad Inicial</div>
+                  <div><InlineMath math="\theta" />: Ángulo de Lanzamiento</div>
+                  <div><InlineMath math="g" />: Gravedad</div>
+                  <div><InlineMath math="t" />: Tiempo</div>
+                  <div><InlineMath math="m" />: Masa</div>
+                  <div><InlineMath math="b" />: Coef. Amortiguamiento</div>
                   {selectedShotData.windEnabled && (
                     <>
-                      <div>Vw: Wind Velocity</div>
+                      <div><InlineMath math="V_w" />: Velocidad Viento</div>
                     </>
                   )}
                 </div>
@@ -428,6 +515,20 @@ export default function ChartsPanel({ onClose }: ChartsPanelProps) {
           </div>
         )}
 
+        {/* Copyright Footer */}
+        <div className="bg-white/5 rounded-xl border border-white/10 p-4 mt-6">
+          <a
+            href="https://github.com/JuanesEspinosa"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-white/50 hover:text-white/80 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>© 2025 Desarrollado por Juanes Espinosa</span>
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+            </svg>
+          </a>
+        </div>
       </div>
     </div>
   );

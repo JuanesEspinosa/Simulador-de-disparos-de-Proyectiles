@@ -44,8 +44,8 @@ export default function SimulationUI({
         <button
             onClick={onClick}
             className={`p-3 rounded-xl transition-all duration-300 flex items-center gap-2 ${active
-                    ? 'bg-white text-black shadow-lg shadow-white/20 scale-105'
-                    : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'
+                ? 'bg-white text-black shadow-lg shadow-white/20 scale-105'
+                : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'
                 }`}
             title={label}
             aria-label={label}
@@ -83,8 +83,8 @@ export default function SimulationUI({
                 <button
                     onClick={() => setShowCharts(!showCharts)}
                     className={`px-4 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 backdrop-blur-md border ${showCharts
-                            ? 'bg-blue-500 text-white border-blue-400 shadow-lg shadow-blue-500/20'
-                            : 'bg-black/40 text-white/90 border-white/10 hover:bg-black/50'
+                        ? 'bg-blue-500 text-white border-blue-400 shadow-lg shadow-blue-500/20'
+                        : 'bg-black/40 text-white/90 border-white/10 hover:bg-black/50'
                         }`}
                     aria-label={showCharts ? "Hide Charts" : "Show Charts"}
                 >
